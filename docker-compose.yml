@@ -1,0 +1,25 @@
+services:
+  # ChromaDB - Vector Database for Semantic Search
+  chroma:
+    image: chromadb/chroma:latest
+    ports:
+      - "8000:8000"
+    volumes:
+      - chroma_data:/chroma/data
+    environment:
+      - CHROMA_SERVER_AUTH_PROVIDER=None
+
+  # MySQL - Persistent Storage for Sessions and Audit Logs
+  mysql:
+    image: mysql:8.0
+    ports:
+      - "3307:3306"
+    environment:
+      - MYSQL_DATABASE=nexus_rag
+      - MYSQL_ROOT_PASSWORD=password
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+volumes:
+  chroma_data:
+  mysql_data:
