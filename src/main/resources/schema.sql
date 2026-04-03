@@ -1,6 +1,6 @@
--- Create Database if not exists
-CREATE DATABASE IF NOT EXISTS nexus_rag;
-USE nexus_rag;
+-- Create Database if not exists (Ignored for H2 InMemory)
+-- CREATE DATABASE IF NOT EXISTS nexus_rag;
+-- USE nexus_rag;
 
 -- User Sessions Table
 CREATE TABLE IF NOT EXISTS user_sessions (

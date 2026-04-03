@@ -1,6 +1,5 @@
 package com.nexusrag.agent;
 
-import dev.langchain4j.service.spring.AiService;
 import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.UserMessage;
 import dev.langchain4j.service.TokenStream;
@@ -8,8 +7,10 @@ import dev.langchain4j.service.TokenStream;
 /**
  * Nexus RAG: Autonomous University Assistant Agent.
  * Uses Source Grounding and strict citing format: [Source: FileName, Page: X].
+ * 
+ * NOTE: This interface is wired up via AiServices.builder() in AssistantConfig.
+ * Do NOT use @AiService here as it conflicts with the manual bean definition.
  */
-@AiService
 public interface AssistantAgent {
 
     @SystemMessage("""
@@ -18,9 +19,9 @@ public interface AssistantAgent {
             
             RULES:
             1. Source Grounding: You MUST cite your sources at the end of each statement using the format: [Source: FileName, Page: X].
-            2. Self-Correction & Reasoning: If the provided context is insufficient or retrieval scores are low (score < 0.7), state clearly: "I apologize, but I do not have enough information to answer this reliably." 
-            3. Do not hallucinate. If you are unsure, say "I don't know."
-            4. If multi-step reasoning is required, explain your steps briefly.
+            2. Web Search: If information is MISSING from the uploaded PDFs, USE the searchUniversityWebsite tool to fetch live data.
+            3. Self-Correction: If retrieval scores are low (< 0.7) and search also fails, state: "I apologize, but I do not have enough information to answer this reliably." 
+            4. Do not hallucinate. Citation-less answers are forbidden.
             """)
     String answer(@UserMessage String question);
 

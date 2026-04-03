@@ -4,7 +4,7 @@ import dev.langchain4j.data.document.Document;
 import dev.langchain4j.data.document.DocumentParser;
 import dev.langchain4j.data.document.DocumentSplitter;
 import dev.langchain4j.data.document.parser.apache.tika.ApacheTikaDocumentParser;
-import dev.langchain4j.data.document.splitter.recursive.RecursiveCharacterSplitter;
+import dev.langchain4j.data.document.splitter.DocumentSplitters;
 import dev.langchain4j.data.segment.TextSegment;
 import dev.langchain4j.model.embedding.EmbeddingModel;
 import dev.langchain4j.store.embedding.EmbeddingStore;
@@ -44,11 +44,8 @@ public class DocumentService {
         baseMetadata.put("source_name", filePath.getFileName().toString());
         baseMetadata.put("ingestion_timestamp", LocalDateTime.now().toString());
         
-        // Recursive Character Splitter: 600 tokens, 15% (90 tokens) overlap
-        DocumentSplitter splitter = RecursiveCharacterSplitter.builder()
-                .chunkSize(600)
-                .chunkOverlap(90)
-                .build();
+        // Recursive Character Splitter: 600 token/char max, 15% (90) overlap
+        DocumentSplitter splitter = DocumentSplitters.recursive(600, 90);
 
         // The Ingestor will handle the splitting and embedding store storage
         EmbeddingStoreIngestor ingestor = EmbeddingStoreIngestor.builder()

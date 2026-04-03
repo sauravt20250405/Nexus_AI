@@ -38,3 +38,10 @@ $RECYCLE.BIN/
 .env
 .env.local
 .env.*.local
+
+# Logs and temporary files
+*.log
+app_output.txt
+startup_log.txt
+startup_log_2.txt
+dummy.pdf
