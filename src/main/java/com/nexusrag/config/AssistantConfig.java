@@ -11,8 +11,11 @@ import dev.langchain4j.service.AiServices;
 import dev.langchain4j.memory.chat.MessageWindowChatMemory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 
+import dev.langchain4j.model.openai.OpenAiChatModel;
 import dev.langchain4j.model.openai.OpenAiStreamingChatModel;
+import dev.langchain4j.model.ollama.OllamaStreamingChatModel;
 import dev.langchain4j.model.scoring.ScoringModel;
 import dev.langchain4j.model.cohere.CohereScoringModel;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,6 +36,34 @@ public class AssistantConfig {
     @Value("${langchain4j.cohere.api-key:PLACEHOLDER}")
     private String cohereApiKey;
 
+    @Value("${langchain4j.ollama.chat-model.base-url}")
+    private String ollamaBaseUrl;
+
+    @Value("${langchain4j.ollama.chat-model.model-name}")
+    private String ollamaModelName;
+
+    @Value("${langchain4j.ollama.chat-model.temperature}")
+    private Double ollamaTemperature;
+
+    @Bean
+    @Primary
+    public ChatLanguageModel chatLanguageModel() {
+        ChatLanguageModel openAiModel = OpenAiChatModel.builder()
+                .apiKey(openAiApiKey)
+                .modelName(openAiModelName)
+                .temperature(0.7)
+                .build();
+
+        ChatLanguageModel ollamaModel = OpenAiChatModel.builder()
+                .baseUrl(ollamaBaseUrl.endsWith("/") ? ollamaBaseUrl + "v1" : ollamaBaseUrl + "/v1")
+                .modelName(ollamaModelName)
+                .apiKey("ollama-local")
+                .temperature(ollamaTemperature)
+                .build();
+
+        return new FallbackChatModel(openAiModel, ollamaModel);
+    }
+
     /**
      * Local BGE embedding model - runs entirely in-process, no API keys needed.
      */
@@ -42,12 +73,14 @@ public class AssistantConfig {
     }
 
     @Bean
-    public StreamingChatLanguageModel streamingChatLanguageModel() {
-        return OpenAiStreamingChatModel.builder()
+    public StreamingChatLanguageModel streamingChatLanguageModel(ChatLanguageModel chatLanguageModel) {
+        StreamingChatLanguageModel openAiModel = OpenAiStreamingChatModel.builder()
                 .apiKey(openAiApiKey)
                 .modelName(openAiModelName)
                 .temperature(0.7)
                 .build();
+
+        return new FallbackStreamingChatModel(openAiModel, chatLanguageModel);
     }
 
     @Bean

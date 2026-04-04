@@ -77,7 +77,7 @@ public class NexusRagController {
                         // Audit Logging
                         AuditLog log = new AuditLog();
                         log.setUserQuery(query);
-                        log.setBotResponse(response.content().text());
+                        log.setBotResponse((response != null && response.content() != null) ? response.content().text() : "");
                         log.setProcessTimeMs(System.currentTimeMillis() - startTime);
                         log.setRetrievalScore(RetrievalContextHolder.getMaxScore());
                         auditLogRepository.save(log);
