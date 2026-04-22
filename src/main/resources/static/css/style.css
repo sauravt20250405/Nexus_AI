@@ -298,6 +298,7 @@ body {
     padding: 0.6rem;
     border-radius: 20px;
     display: flex;
+    align-items: flex-end;
     gap: 0.5rem;
     transition: border-color 0.3s, box-shadow 0.3s;
 }
@@ -311,7 +312,8 @@ body {
     flex: 1;
     background: transparent;
     border: none;
-    padding: 0 1rem;
+    padding: 12px 1rem;
+    margin: 0;
     color: white;
     font-size: 1rem;
     font-family: inherit;
@@ -319,8 +321,8 @@ body {
 }
 
 .send-btn {
-    width: 48px;
     height: 48px;
+    padding: 0 1.2rem;
     border-radius: 16px;
     background: var(--accent-gradient);
     border: none;
@@ -332,7 +334,30 @@ body {
     transition: transform 0.2s;
 }
 
-.send-btn:hover { transform: scale(1.05) rotate(5deg); }
+.send-btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(99, 102, 241, 0.4); }
+
+.icon-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+.icon-btn svg {
+    width: 22px;
+    height: 22px;
+}
+.icon-btn:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: white;
+}
 
 .system-status {
     margin-top: auto;
@@ -441,4 +466,121 @@ body {
     0% { transform: scale(1); }
     50% { transform: scale(1.1); }
     100% { transform: scale(1); }
+}
+
+/* Light Mode Overrides */
+body.light-mode {
+    --bg-dark: #f0f4f8;
+    --bg-panel: #ffffff;
+    --bg-card: #f8fafc;
+    --text-primary: #1e293b;
+    --text-secondary: #64748b;
+    --border-light: rgba(0,0,0,0.1);
+}
+body.light-mode .input-wrapper { background: #ffffff; }
+body.light-mode .message.bot .msg-content { border-top-left-radius: 4px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+
+/* Theme Switch Button */
+.theme-switch-wrapper { display: flex; align-items: center; }
+.theme-switch { display: inline-block; height: 24px; position: relative; width: 44px; }
+.theme-switch input { display: none; }
+.slider { background-color: var(--bg-card); bottom: 0; cursor: pointer; left: 0; position: absolute; right: 0; top: 0; transition: .4s; border: 1px solid var(--border-light); }
+.slider:before { background-color: var(--accent); bottom: 2px; content: ""; height: 18px; left: 2px; position: absolute; transition: .4s; width: 18px; }
+input:checked + .slider { background-color: var(--accent); }
+input:checked + .slider:before { transform: translateX(20px); background-color: white;}
+.slider.round { border-radius: 24px; }
+.slider.round:before { border-radius: 50%; }
+
+/* Copy Buttons */
+.copy-btn { margin-left: 8px; background: transparent; border: none; color: var(--text-secondary); cursor: pointer; font-size: 1rem; opacity: 0.6; transition: 0.2s; }
+.copy-btn:hover { opacity: 1; color: var(--accent); }
+.copy-code-btn { position: absolute; right: 8px; top: 8px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; cursor: pointer; transition: 0.2s; }
+.copy-code-btn:hover { background: var(--accent); color: var(--bg-dark); }
+.code-wrapper { position: relative; margin: 1rem 0; border-radius: 8px; overflow: hidden; }
+
+/* Textarea Resizing */
+textarea.query-input, #queryInput {
+    background: transparent;
+    border: none;
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 1rem;
+    padding: 12px 0;
+    margin: 0;
+    resize: none;
+    outline: none;
+    width: 100%;
+    line-height: 1.5;
+    max-height: 150px;
+    overflow-y: auto;
+}
+
+/* Telemetry Badge */
+.telemetry-badge {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    background: rgba(0,0,0,0.1);
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: 10px;
+    display: inline-block;
+    float: right;
+}
+
+/* Print CSS (For PDF Export) */
+@media print {
+    .sidebar, .input-area, .chat-header, .speaker-btn, .copy-btn, .copy-code-btn, #dragOverlay, .file-preview-container {
+        display: none !important;
+    }
+    .app-container {
+        grid-template-columns: 1fr;
+    }
+    .chat-area {
+        height: auto;
+        overflow: visible;
+    }
+    .chat-window {
+        height: auto;
+        overflow: visible;
+    }
+    .message {
+        page-break-inside: avoid;
+        border: 1px solid #ccc;
+    }
+    body {
+        background: #fff;
+        color: #000;
+    }
+}
+
+/* Power User Expansion */
+.camera-btn { color: var(--text-secondary); transition: 0.2s; }
+.camera-btn:hover { color: #3b82f6; }
+.stop-btn-active {
+    background: #ef4444 !important;
+    color: white !important;
+    animation: none !important;
+}
+
+.quick-replies-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 0 3rem;
+    margin-bottom: 0.5rem;
+    margin-top: 1rem;
+}
+.quick-reply-pill {
+    background: rgba(45, 212, 191, 0.1);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: 0.2s;
+}
+.quick-reply-pill:hover {
+    background: var(--accent);
+    color: var(--bg-dark);
 }

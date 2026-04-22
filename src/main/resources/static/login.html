@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus AI | Sign In</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0b0f1a;
+            --accent: #6366f1;
+            --accent-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --panel-border: rgba(255, 255, 255, 0.08);
+            --glass-bg: rgba(15, 23, 42, 0.6);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            background-image:
+                radial-gradient(circle at 20% 20%, rgba(99, 102, 241, 0.2) 0%, transparent 40%),
+                radial-gradient(circle at 80% 80%, rgba(168, 85, 247, 0.2) 0%, transparent 40%),
+                radial-gradient(circle at 50% 50%, rgba(45, 212, 191, 0.05) 0%, transparent 60%);
+        }
+
+        /* Animated floating orbs */
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.4;
+            animation: float 8s ease-in-out infinite;
+            pointer-events: none;
+        }
+        .orb-1 { width: 400px; height: 400px; background: #6366f1; top: -100px; left: -100px; animation-delay: 0s; }
+        .orb-2 { width: 350px; height: 350px; background: #a855f7; bottom: -80px; right: -80px; animation-delay: 2s; }
+        .orb-3 { width: 250px; height: 250px; background: #2dd4bf; top: 50%; left: 60%; animation-delay: 4s; }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-30px) scale(1.05); }
+        }
+
+        .login-container {
+            width: 440px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(40px);
+            border: 1px solid var(--panel-border);
+            border-radius: 32px;
+            padding: 3rem;
+            box-shadow: 0 40px 100px -20px rgba(0, 0, 0, 0.7);
+            position: relative;
+            z-index: 10;
+            animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .brand {
+            text-align: center;
+            margin-bottom: 2.5rem;
+        }
+
+        .brand h1 {
+            font-size: 2.8rem;
+            font-weight: 700;
+            letter-spacing: -2px;
+        }
+
+        .brand h1 span {
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .brand p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-top: 0.3rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+            font-weight: 400;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 1rem 1.2rem;
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid var(--panel-border);
+            border-radius: 16px;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        .form-group input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.15);
+        }
+
+        .form-group input::placeholder {
+            color: #475569;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 1rem;
+            background: var(--accent-gradient);
+            border: none;
+            border-radius: 16px;
+            color: white;
+            font-family: inherit;
+            font-size: 1.05rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 0.5rem;
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(99, 102, 241, 0.4);
+        }
+
+        .login-btn:active {
+            transform: translateY(0);
+        }
+
+        .error-msg {
+            color: #ef4444;
+            font-size: 0.85rem;
+            text-align: center;
+            margin-top: 1rem;
+            min-height: 1.2rem;
+            animation: shake 0.4s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-8px); }
+            75% { transform: translateX(8px); }
+        }
+
+        .users-hint {
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--panel-border);
+            text-align: center;
+        }
+
+        .users-hint p {
+            font-size: 0.75rem;
+            color: #475569;
+            margin-bottom: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .user-pills {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .user-pill {
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.25);
+            color: #a5b4fc;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .user-pill:hover {
+            background: var(--accent);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .form-group select {
+            width: 100%;
+            padding: 1rem 1.2rem;
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid var(--panel-border);
+            border-radius: 16px;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s;
+            appearance: none;
+        }
+        .form-group select:focus { border-color: var(--accent); box-shadow: 0 0 20px rgba(99, 102, 241, 0.15); }
+        .form-group select option { background: #1e293b; color: #f8fafc; }
+
+        .toggle-link {
+            text-align: center;
+            margin-top: 1.2rem;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        .toggle-link a {
+            color: var(--accent);
+            cursor: pointer;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .toggle-link a:hover { text-decoration: underline; }
+
+        .success-msg {
+            color: #10b981;
+            font-size: 0.85rem;
+            text-align: center;
+            margin-top: 1rem;
+            min-height: 1.2rem;
+        }
+
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+
+    <div class="login-container">
+        <div class="brand">
+            <h1>Nexus <span>AI</span></h1>
+            <p>Personal Knowledge Assistant</p>
+        </div>
+
+        <form id="loginForm">
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" id="username" placeholder="Enter your username" autocomplete="off" required>
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="password" placeholder="Enter your password" required>
+            </div>
+            <button type="submit" class="login-btn">Sign In →</button>
+            <div id="errorMsg" class="error-msg"></div>
+            <div class="toggle-link">Don't have an account? <a id="showRegister">Create Account</a></div>
+        </form>
+
+        <form id="registerForm" class="hidden">
+            <div class="form-group">
+                <label>Full Name</label>
+                <input type="text" id="regName" placeholder="Enter your full name" autocomplete="off" required>
+            </div>
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" id="regUsername" placeholder="Choose a username" autocomplete="off" required>
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="regPassword" placeholder="Create a password" required>
+            </div>
+            <div class="form-group">
+                <label>Role</label>
+                <select id="regRole" required>
+                    <option value="Developer">👨‍💻 Developer</option>
+                    <option value="Student">🎓 Student</option>
+                    <option value="Researcher">🔬 Researcher</option>
+                    <option value="Administrator">🛡️ Administrator</option>
+                    <option value="Viewer">👁️ Viewer</option>
+                </select>
+            </div>
+            <button type="submit" class="login-btn" style="background: linear-gradient(135deg, #10b981, #2dd4bf);">Create Account →</button>
+            <div id="regMsg" class="error-msg"></div>
+            <div id="regSuccess" class="success-msg"></div>
+            <div class="toggle-link">Already have an account? <a id="showLogin">Sign In</a></div>
+        </form>
+
+        <div class="users-hint" id="demoHint">
+            <p>Demo Accounts</p>
+            <div class="user-pills">
+                <span class="user-pill" data-user="admin" data-pass="admin123">Admin</span>
+                <span class="user-pill" data-user="saurav" data-pass="saurav123">Saurav</span>
+                <span class="user-pill" data-user="guest" data-pass="guest123">Guest</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Load registered users from localStorage, merge with defaults
+        const DEFAULT_USERS = {
+            "admin":  { password: "admin123", role: "Administrator", name: "Admin" },
+            "saurav": { password: "saurav123", role: "Developer", name: "Saurav Thakur" },
+            "guest":  { password: "guest123", role: "Viewer", name: "Guest User" }
+        };
+        const storedUsers = JSON.parse(localStorage.getItem("nexus_registered_users") || "{}");
+        const USERS = { ...DEFAULT_USERS, ...storedUsers };
+
+        if (localStorage.getItem("nexus_user")) {
+            window.location.href = "index.html";
+        }
+
+        // Toggle forms
+        document.getElementById("showRegister").addEventListener("click", () => {
+            document.getElementById("loginForm").classList.add("hidden");
+            document.getElementById("registerForm").classList.remove("hidden");
+            document.getElementById("demoHint").classList.add("hidden");
+        });
+        document.getElementById("showLogin").addEventListener("click", () => {
+            document.getElementById("registerForm").classList.add("hidden");
+            document.getElementById("loginForm").classList.remove("hidden");
+            document.getElementById("demoHint").classList.remove("hidden");
+        });
+
+        // Quick-fill demo pills
+        document.querySelectorAll(".user-pill").forEach(pill => {
+            pill.addEventListener("click", () => {
+                document.getElementById("username").value = pill.dataset.user;
+                document.getElementById("password").value = pill.dataset.pass;
+            });
+        });
+
+        // Login Handler
+        document.getElementById("loginForm").addEventListener("submit", (e) => {
+            e.preventDefault();
+            const username = document.getElementById("username").value.trim().toLowerCase();
+            const password = document.getElementById("password").value;
+            const errorMsg = document.getElementById("errorMsg");
+            const allUsers = { ...DEFAULT_USERS, ...JSON.parse(localStorage.getItem("nexus_registered_users") || "{}") };
+
+            if (allUsers[username] && allUsers[username].password === password) {
+                localStorage.setItem("nexus_user", JSON.stringify({
+                    username, name: allUsers[username].name,
+                    role: allUsers[username].role,
+                    loginTime: new Date().toISOString()
+                }));
+                window.location.href = "index.html";
+            } else {
+                errorMsg.textContent = "Invalid credentials. Please try again.";
+                setTimeout(() => errorMsg.textContent = "", 3000);
+            }
+        });
+
+        // Register Handler
+        document.getElementById("registerForm").addEventListener("submit", (e) => {
+            e.preventDefault();
+            const name = document.getElementById("regName").value.trim();
+            const username = document.getElementById("regUsername").value.trim().toLowerCase();
+            const password = document.getElementById("regPassword").value;
+            const role = document.getElementById("regRole").value;
+            const regMsg = document.getElementById("regMsg");
+            const regSuccess = document.getElementById("regSuccess");
+
+            const allUsers = { ...DEFAULT_USERS, ...JSON.parse(localStorage.getItem("nexus_registered_users") || "{}") };
+
+            if (allUsers[username]) {
+                regMsg.textContent = "Username already exists!";
+                regSuccess.textContent = "";
+                setTimeout(() => regMsg.textContent = "", 3000);
+                return;
+            }
+            if (password.length < 4) {
+                regMsg.textContent = "Password must be at least 4 characters.";
+                regSuccess.textContent = "";
+                setTimeout(() => regMsg.textContent = "", 3000);
+                return;
+            }
+
+            const registered = JSON.parse(localStorage.getItem("nexus_registered_users") || "{}");
+            registered[username] = { password, role, name };
+            localStorage.setItem("nexus_registered_users", JSON.stringify(registered));
+
+            regMsg.textContent = "";
+            regSuccess.textContent = "Account created! Switching to Sign In...";
+            setTimeout(() => {
+                document.getElementById("showLogin").click();
+                document.getElementById("username").value = username;
+                document.getElementById("password").value = password;
+                regSuccess.textContent = "";
+            }, 1500);
+        });
+    </script>
+</body>
+</html>

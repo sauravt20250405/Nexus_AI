@@ -4,6 +4,7 @@ import dev.langchain4j.model.chat.StreamingChatLanguageModel;
 import dev.langchain4j.model.openai.OpenAiStreamingChatModel;
 import dev.langchain4j.model.ollama.OllamaStreamingChatModel;
 import dev.langchain4j.model.googleai.GoogleAiGeminiStreamingChatModel;
+import dev.langchain4j.model.openai.OpenAiImageModel;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.beans.factory.annotation.Value;
@@ -35,6 +36,13 @@ public class AssistantConfig {
     @Value("${langchain4j.gemini.chat-model.model-name:gemini-1.5-pro}")
     private String geminiModelName;
 
+    // Groq (OpenAI-Compatible)
+    @Value("${langchain4j.groq.api-key}")
+    private String groqApiKey;
+
+    @Value("${langchain4j.groq.model-name:llama-3.3-70b-versatile}")
+    private String groqModelName;
+
     @Bean("nexusOpenAiChatModel")
     public StreamingChatLanguageModel openAiChatModel() {
         return OpenAiStreamingChatModel.builder()
@@ -58,6 +66,24 @@ public class AssistantConfig {
         return GoogleAiGeminiStreamingChatModel.builder()
                 .apiKey(geminiApiKey)
                 .modelName(geminiModelName)
+                .temperature(0.7)
+                .build();
+    }
+
+    @Bean("nexusOpenAiImageModel")
+    public dev.langchain4j.model.image.ImageModel openAiImageModel() {
+        return OpenAiImageModel.builder()
+                .apiKey(openAiApiKey)
+                .modelName("dall-e-3")
+                .build();
+    }
+
+    @Bean("nexusGroqChatModel")
+    public StreamingChatLanguageModel groqChatModel() {
+        return OpenAiStreamingChatModel.builder()
+                .baseUrl("https://api.groq.com/openai/v1")
+                .apiKey(groqApiKey)
+                .modelName(groqModelName)
                 .temperature(0.7)
                 .build();
     }

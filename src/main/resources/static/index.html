@@ -4,10 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nexus AI | Personal Knowledge Assistant</title>
+    <link rel="manifest" href="manifest.json">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <link rel="stylesheet" href="css/style.css">
+    <script>
+        // Auth Guard: Redirect to login if not authenticated
+        if (!localStorage.getItem("nexus_user")) {
+            window.location.href = "login.html";
+        }
+    </script>
 </head>
 <body>
     <div class="app-container">
@@ -23,6 +30,14 @@
             <h1 class="brand-title">Nexus <span>AI</span></h1>
             <p class="subtitle">Personal Knowledge Assistant</p>
             
+            <div id="userProfile" style="background: rgba(99, 102, 241, 0.1); border: 1px solid rgba(99, 102, 241, 0.2); border-radius: 16px; padding: 12px 16px; margin-top: 0.5rem; display: flex; align-items: center; gap: 10px;">
+                <div style="width: 36px; height: 36px; border-radius: 50%; background: var(--accent-gradient); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; flex-shrink: 0;" id="userAvatar">U</div>
+                <div>
+                    <div id="userName" style="font-weight: 600; font-size: 0.9rem;">User</div>
+                    <div id="userRole" style="font-size: 0.7rem; color: var(--text-secondary);">Role</div>
+                </div>
+            </div>
+            
             <div class="scroll-section">
                 <div class="history-section">
                     <h3>Chat History</h3>
@@ -31,9 +46,23 @@
                     </div>
             </div>
             
-            <div class="sidebar-actions" style="padding: 1rem; text-align: center; margin-top: auto;">
+            <div class="sidebar-actions" style="padding: 1rem; text-align: center; margin-top: auto; display: flex; flex-direction: column; gap: 10px;">
+                <button id="clearMemoryBtn" class="export-btn" style="width: 100%; border: 1px solid #ef4444; background: transparent; color: #ef4444; padding: 8px; border-radius: 8px; cursor: pointer; transition: 0.2s;">
+                    🗑️ Clear Session
+                </button>
                 <button id="exportChatBtn" class="export-btn" style="width: 100%; border: 1px solid var(--accent); background: transparent; color: var(--accent); padding: 8px; border-radius: 8px; cursor: pointer; transition: 0.2s;">
                     📥 Export Chat (.md)
+                </button>
+                <button id="printPdfBtn" class="export-btn" style="width: 100%; border: 1px solid #10b981; background: transparent; color: #10b981; padding: 8px; border-radius: 8px; cursor: pointer; transition: 0.2s;">
+                    🖨️ Create PDF
+                </button>
+                <a href="quiz.html" style="text-decoration: none;">
+                    <button class="export-btn" style="width: 100%; border: 1px solid #a855f7; background: transparent; color: #a855f7; padding: 8px; border-radius: 8px; cursor: pointer; transition: 0.2s;">
+                        🧠 Quiz Arena
+                    </button>
+                </a>
+                <button id="logoutBtn" class="export-btn" style="width: 100%; border: 1px solid #f59e0b; background: transparent; color: #f59e0b; padding: 8px; border-radius: 8px; cursor: pointer; transition: 0.2s;">
+                    🚪 Logout
                 </button>
             </div>
             
@@ -47,14 +76,29 @@
             <header class="chat-header">
                 <div class="header-info">
                     <h2>Nexus AI Studio</h2>
-                    <span id="modelBadge" class="badge" style="background: rgba(168, 85, 247, 0.2); color: #a855f7;">Ollama (LLaMA-3)</span>
+                    <span id="modelBadge" class="badge" style="background: rgba(52, 168, 83, 0.2); color: #34a853;">Google Gemini</span>
                 </div>
-                <div class="model-selector">
-                    <select id="modelToggle">
-                        <option value="ollama" selected>Ollama (Local LLaMA-3)</option>
-                        <option value="openai">OpenAI (Cloud)</option>
-                        <option value="gemini">Google Gemini</option>
-                    </select>
+                <div class="header-actions" style="display: flex; align-items: center; gap: 1rem;">
+                    <div class="theme-switch-wrapper">
+                        <label class="theme-switch" for="checkboxTheme">
+                            <input type="checkbox" id="checkboxTheme" />
+                            <div class="slider round"></div>
+                        </label>
+                    </div>
+                    <div class="model-selector">
+                        <select id="personaToggle" style="margin-right: 8px;">
+                            <option value="Standard Assistant">Standard Assistant</option>
+                            <option value="Master Developer">Master Developer</option>
+                            <option value="Creative Novelist">Creative Novelist</option>
+                            <option value="Sarcastic Robot">Sarcastic Robot</option>
+                        </select>
+                        <select id="modelToggle">
+                            <option value="gemini" selected>Google Gemini</option>
+                            <option value="groq">Groq (LLaMA-3.3 70B)</option>
+                            <option value="openai">OpenAI (Cloud)</option>
+                            <option value="ollama">Ollama (Local LLaMA-3)</option>
+                        </select>
+                    </div>
                 </div>
             </header>
 
@@ -68,16 +112,22 @@
             </div>
             
             <div id="filePreviewContainer" class="file-preview-container"></div>
+            
+            <div id="quickRepliesContainer" class="quick-replies-container"></div>
+            
             <div class="input-area">
                 <div class="search-progress" style="display: none;" id="searchIndicator">
                     Agentic Logic: Search in Progress... <span class="spinner"></span>
                 </div>
                 <div class="input-wrapper glowing-border">
-                    <button id="attachmentBtn" class="icon-btn attachment-btn">
+                    <button id="attachmentBtn" class="icon-btn attachment-btn" title="Upload File">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
                     </button>
+                    <button id="cameraBtn" class="icon-btn camera-btn" title="Take Photo">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+                    </button>
                     <input type="file" id="fileInput" multiple style="display: none;" accept="image/*,.pdf,.txt,.docx">
-                    <input type="text" id="queryInput" placeholder="Enter your question or upload a file..." autocomplete="off">
+                    <textarea id="queryInput" placeholder="Enter your question or upload a file..." rows="1"></textarea>
                     <button id="micBtn" class="icon-btn mic-btn">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
                     </button>

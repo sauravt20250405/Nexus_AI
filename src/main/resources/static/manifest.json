@@ -1,0 +1,16 @@
+{
+  "name": "Nexus AI Studio",
+  "short_name": "Nexus AI",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#2dd4bf",
+  "description": "Multi-Modal Artificial Intelligence Operating System",
+  "icons": [
+    {
+      "src": "data:image/svg+xml;utf8,<svg viewBox='0 0 24 24' xmlns='http://www.w3.org/2000/svg'><circle cx='12' cy='12' r='12' fill='%232dd4bf'/></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    }
+  ]
+}

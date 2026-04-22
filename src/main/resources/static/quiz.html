@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nexus AI | Quiz Arena</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #0b0f1a;
+            --accent: #6366f1;
+            --accent-gradient: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --panel-border: rgba(255, 255, 255, 0.08);
+            --glass-bg: rgba(15, 23, 42, 0.6);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-image:
+                radial-gradient(circle at 30% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 40%),
+                radial-gradient(circle at 70% 80%, rgba(168, 85, 247, 0.15) 0%, transparent 40%);
+        }
+
+        .quiz-container {
+            width: 600px;
+            max-width: 95vw;
+            background: var(--glass-bg);
+            backdrop-filter: blur(40px);
+            border: 1px solid var(--panel-border);
+            border-radius: 32px;
+            padding: 2.5rem;
+            box-shadow: 0 40px 100px -20px rgba(0, 0, 0, 0.7);
+            animation: slideUp 0.5s ease;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .quiz-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .quiz-header h1 { font-size: 2rem; font-weight: 700; }
+        .quiz-header h1 span {
+            background: var(--accent-gradient);
+            -webkit-background-clip: text; background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .quiz-header p { color: var(--text-secondary); font-size: 0.9rem; margin-top: 0.3rem; }
+        .back-link {
+            display: inline-block;
+            margin-bottom: 1.5rem;
+            color: var(--accent);
+            text-decoration: none;
+            font-size: 0.85rem;
+            transition: 0.2s;
+        }
+        .back-link:hover { opacity: 0.7; }
+
+        .stats-bar {
+            display: flex;
+            justify-content: space-between;
+            background: rgba(30, 41, 59, 0.5);
+            padding: 12px 20px;
+            border-radius: 16px;
+            margin-bottom: 1.5rem;
+            font-size: 0.85rem;
+        }
+        .stats-bar span { color: var(--text-secondary); }
+        .stats-bar .score { color: #10b981; font-weight: 600; }
+        .stats-bar .timer { color: #f59e0b; font-weight: 600; }
+
+        /* Category Selection */
+        .category-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 1.5rem;
+        }
+        .cat-btn {
+            padding: 1.2rem;
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid var(--panel-border);
+            border-radius: 16px;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+        .cat-btn:hover {
+            border-color: var(--accent);
+            background: rgba(99, 102, 241, 0.1);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.2);
+        }
+        .cat-btn .emoji { font-size: 1.8rem; display: block; margin-bottom: 0.5rem; }
+
+        .question-text {
+            font-size: 1.15rem;
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+            line-height: 1.5;
+            min-height: 60px;
+        }
+        .question-num {
+            font-size: 0.75rem;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 0.5rem;
+        }
+
+        .options { display: flex; flex-direction: column; gap: 10px; }
+        .option-btn {
+            padding: 1rem 1.4rem;
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid var(--panel-border);
+            border-radius: 16px;
+            color: var(--text-primary);
+            font-family: inherit;
+            font-size: 0.95rem;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.2s;
+        }
+        .option-btn:hover:not(.disabled) {
+            border-color: var(--accent);
+            background: rgba(99, 102, 241, 0.1);
+            transform: translateX(5px);
+        }
+        .option-btn.correct { border-color: #10b981; background: rgba(16, 185, 129, 0.15); color: #10b981; }
+        .option-btn.wrong { border-color: #ef4444; background: rgba(239, 68, 68, 0.15); color: #ef4444; }
+        .option-btn.disabled { pointer-events: none; opacity: 0.7; }
+
+        .result-screen { text-align: center; }
+        .result-screen h2 { font-size: 2rem; margin-bottom: 1rem; }
+        .result-screen .big-score {
+            font-size: 4rem; font-weight: 700;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text; background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .result-screen p { color: var(--text-secondary); margin: 1rem 0; }
+        .restart-btn {
+            padding: 1rem 2rem;
+            background: var(--accent-gradient);
+            border: none; border-radius: 16px;
+            color: white; font-family: inherit; font-size: 1rem; font-weight: 600;
+            cursor: pointer; transition: 0.3s;
+            margin-top: 1rem;
+        }
+        .restart-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px rgba(99,102,241,0.4); }
+
+        .progress-bar {
+            width: 100%; height: 6px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 3px; margin-bottom: 1.5rem; overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%; background: var(--accent-gradient);
+            border-radius: 3px; transition: width 0.4s ease;
+        }
+
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+    <div class="quiz-container">
+        <a href="index.html" class="back-link">← Back to Nexus AI</a>
+        <div class="quiz-header">
+            <h1>Quiz <span>Arena</span></h1>
+            <p>Test your knowledge across multiple categories</p>
+        </div>
+
+        <!-- Category Selection -->
+        <div id="categoryScreen">
+            <p style="color: var(--text-secondary); text-align: center; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 1px; font-size: 0.8rem;">Choose a Category</p>
+            <div class="category-grid">
+                <button class="cat-btn" onclick="startQuiz('math')"><span class="emoji">🧮</span>Mathematics</button>
+                <button class="cat-btn" onclick="startQuiz('gk')"><span class="emoji">🌍</span>General Knowledge</button>
+                <button class="cat-btn" onclick="startQuiz('science')"><span class="emoji">🔬</span>Science</button>
+                <button class="cat-btn" onclick="startQuiz('tech')"><span class="emoji">💻</span>Technology</button>
+            </div>
+        </div>
+
+        <!-- Quiz Screen -->
+        <div id="quizScreen" class="hidden">
+            <div class="stats-bar">
+                <span>Score: <span class="score" id="scoreDisplay">0</span></span>
+                <span>⏱ <span class="timer" id="timerDisplay">15</span>s</span>
+                <span id="qCount">1 / 10</span>
+            </div>
+            <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width: 10%"></div></div>
+            <div class="question-num" id="questionNum">Question 1</div>
+            <div class="question-text" id="questionText"></div>
+            <div class="options" id="optionsContainer"></div>
+        </div>
+
+        <!-- Result Screen -->
+        <div id="resultScreen" class="hidden result-screen">
+            <h2>Quiz Complete!</h2>
+            <div class="big-score" id="finalScore">0/10</div>
+            <p id="resultMsg">Great job!</p>
+            <button class="restart-btn" onclick="resetQuiz()">Play Again 🔁</button>
+        </div>
+    </div>
+
+    <script>
+        const QUESTIONS = {
+            math: [
+                { q: "What is 15 × 17?", options: ["255", "245", "235", "265"], answer: 0 },
+                { q: "What is the square root of 144?", options: ["14", "12", "11", "13"], answer: 1 },
+                { q: "What is 2⁸?", options: ["128", "512", "256", "64"], answer: 2 },
+                { q: "If x + 5 = 12, what is x?", options: ["5", "6", "7", "8"], answer: 2 },
+                { q: "What is the value of π (pi) to 2 decimal places?", options: ["3.14", "3.16", "3.12", "3.18"], answer: 0 },
+                { q: "What is 45% of 200?", options: ["80", "85", "90", "95"], answer: 2 },
+                { q: "What is the LCM of 12 and 18?", options: ["24", "36", "48", "72"], answer: 1 },
+                { q: "How many degrees in a triangle?", options: ["90°", "270°", "180°", "360°"], answer: 2 },
+                { q: "What is log₁₀(1000)?", options: ["2", "3", "4", "10"], answer: 1 },
+                { q: "What is 7! (factorial)?", options: ["720", "5040", "40320", "120"], answer: 1 }
+            ],
+            gk: [
+                { q: "What is the capital of Australia?", options: ["Sydney", "Melbourne", "Canberra", "Perth"], answer: 2 },
+                { q: "Which planet is known as the Red Planet?", options: ["Venus", "Mars", "Jupiter", "Saturn"], answer: 1 },
+                { q: "Who painted the Mona Lisa?", options: ["Van Gogh", "Picasso", "Da Vinci", "Monet"], answer: 2 },
+                { q: "What is the largest ocean on Earth?", options: ["Atlantic", "Indian", "Arctic", "Pacific"], answer: 3 },
+                { q: "In which year did World War II end?", options: ["1943", "1944", "1945", "1946"], answer: 2 },
+                { q: "What is the smallest country in the world?", options: ["Monaco", "Vatican City", "San Marino", "Liechtenstein"], answer: 1 },
+                { q: "Which element has the chemical symbol 'Au'?", options: ["Silver", "Aluminum", "Gold", "Copper"], answer: 2 },
+                { q: "How many continents are there?", options: ["5", "6", "7", "8"], answer: 2 },
+                { q: "What currency does Japan use?", options: ["Yuan", "Won", "Yen", "Ringgit"], answer: 2 },
+                { q: "Which is the longest river in the world?", options: ["Amazon", "Nile", "Yangtze", "Mississippi"], answer: 1 }
+            ],
+            science: [
+                { q: "What gas do plants absorb from the atmosphere?", options: ["Oxygen", "Nitrogen", "Carbon Dioxide", "Hydrogen"], answer: 2 },
+                { q: "What is the speed of light (approx)?", options: ["300,000 km/s", "150,000 km/s", "500,000 km/s", "1,000,000 km/s"], answer: 0 },
+                { q: "What is the powerhouse of the cell?", options: ["Nucleus", "Ribosome", "Mitochondria", "Golgi Body"], answer: 2 },
+                { q: "What planet has the most moons?", options: ["Jupiter", "Saturn", "Uranus", "Neptune"], answer: 1 },
+                { q: "Water boils at what temperature (°C)?", options: ["90°C", "100°C", "110°C", "120°C"], answer: 1 },
+                { q: "What is the chemical formula for table salt?", options: ["NaOH", "NaCl", "KCl", "CaCl₂"], answer: 1 },
+                { q: "How many bones does an adult human have?", options: ["196", "206", "216", "226"], answer: 1 },
+                { q: "What is the hardest natural substance?", options: ["Iron", "Titanium", "Diamond", "Quartz"], answer: 2 },
+                { q: "What type of energy does the Sun produce?", options: ["Chemical", "Mechanical", "Nuclear", "Electrical"], answer: 2 },
+                { q: "What is the pH of pure water?", options: ["5", "6", "7", "8"], answer: 2 }
+            ],
+            tech: [
+                { q: "Who founded Microsoft?", options: ["Steve Jobs", "Bill Gates", "Elon Musk", "Jeff Bezos"], answer: 1 },
+                { q: "What does HTML stand for?", options: ["HyperText Markup Language", "High Tech Modern Language", "Home Tool Markup Language", "HyperText Machine Language"], answer: 0 },
+                { q: "What year was the iPhone first released?", options: ["2005", "2006", "2007", "2008"], answer: 2 },
+                { q: "What does CPU stand for?", options: ["Central Process Unit", "Computer Personal Unit", "Central Processing Unit", "Core Processing Unit"], answer: 2 },
+                { q: "Which company created Java?", options: ["Microsoft", "Google", "Sun Microsystems", "Apple"], answer: 2 },
+                { q: "What does AI stand for?", options: ["Auto Intelligence", "Artificial Intelligence", "Automated Integration", "Advanced Interface"], answer: 1 },
+                { q: "How many bits in a byte?", options: ["4", "8", "16", "32"], answer: 1 },
+                { q: "What does RAM stand for?", options: ["Read Access Memory", "Random Access Memory", "Rapid Access Module", "Run Active Memory"], answer: 1 },
+                { q: "Who is the CEO of Tesla?", options: ["Tim Cook", "Satya Nadella", "Elon Musk", "Jeff Bezos"], answer: 2 },
+                { q: "What programming language is Flutter built with?", options: ["Java", "Swift", "Dart", "Kotlin"], answer: 2 }
+            ]
+        };
+
+        let currentCategory = "";
+        let currentIndex = 0;
+        let score = 0;
+        let timer = null;
+        let timeLeft = 15;
+
+        function startQuiz(category) {
+            currentCategory = category;
+            currentIndex = 0;
+            score = 0;
+            document.getElementById("categoryScreen").classList.add("hidden");
+            document.getElementById("quizScreen").classList.remove("hidden");
+            document.getElementById("resultScreen").classList.add("hidden");
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            const questions = QUESTIONS[currentCategory];
+            const q = questions[currentIndex];
+            document.getElementById("questionNum").textContent = `Question ${currentIndex + 1}`;
+            document.getElementById("questionText").textContent = q.q;
+            document.getElementById("qCount").textContent = `${currentIndex + 1} / ${questions.length}`;
+            document.getElementById("scoreDisplay").textContent = score;
+            document.getElementById("progressFill").style.width = `${((currentIndex + 1) / questions.length) * 100}%`;
+
+            const container = document.getElementById("optionsContainer");
+            container.innerHTML = "";
+            q.options.forEach((opt, i) => {
+                const btn = document.createElement("button");
+                btn.className = "option-btn";
+                btn.textContent = opt;
+                btn.onclick = () => selectAnswer(i, q.answer, container);
+                container.appendChild(btn);
+            });
+
+            // Timer
+            timeLeft = 15;
+            document.getElementById("timerDisplay").textContent = timeLeft;
+            clearInterval(timer);
+            timer = setInterval(() => {
+                timeLeft--;
+                document.getElementById("timerDisplay").textContent = timeLeft;
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    // Auto-reveal correct answer
+                    const btns = container.querySelectorAll(".option-btn");
+                    btns.forEach((b, i) => {
+                        b.classList.add("disabled");
+                        if (i === q.answer) b.classList.add("correct");
+                    });
+                    setTimeout(nextQuestion, 1200);
+                }
+            }, 1000);
+        }
+
+        function selectAnswer(selected, correct, container) {
+            clearInterval(timer);
+            const btns = container.querySelectorAll(".option-btn");
+            btns.forEach((b, i) => {
+                b.classList.add("disabled");
+                if (i === correct) b.classList.add("correct");
+                if (i === selected && selected !== correct) b.classList.add("wrong");
+            });
+            if (selected === correct) score++;
+            setTimeout(nextQuestion, 1000);
+        }
+
+        function nextQuestion() {
+            currentIndex++;
+            if (currentIndex >= QUESTIONS[currentCategory].length) {
+                showResult();
+            } else {
+                loadQuestion();
+            }
+        }
+
+        function showResult() {
+            clearInterval(timer);
+            document.getElementById("quizScreen").classList.add("hidden");
+            document.getElementById("resultScreen").classList.remove("hidden");
+            const total = QUESTIONS[currentCategory].length;
+            document.getElementById("finalScore").textContent = `${score}/${total}`;
+            const pct = (score / total) * 100;
+            let msg = "";
+            if (pct === 100) msg = "🏆 Perfect Score! You're a genius!";
+            else if (pct >= 80) msg = "🌟 Excellent! Almost perfect!";
+            else if (pct >= 60) msg = "👍 Good job! Keep learning!";
+            else if (pct >= 40) msg = "📚 Not bad, but room to improve!";
+            else msg = "💪 Keep practicing, you'll get there!";
+            document.getElementById("resultMsg").textContent = msg;
+        }
+
+        function resetQuiz() {
+            document.getElementById("resultScreen").classList.add("hidden");
+            document.getElementById("categoryScreen").classList.remove("hidden");
+        }
+
+        // Auth guard
+        if (!localStorage.getItem("nexus_user")) {
+            window.location.href = "login.html";
+        }
+    </script>
+</body>
+</html>
