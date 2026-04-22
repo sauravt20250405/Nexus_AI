@@ -3,16 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nexus Rag | Autonomous University Assistant</title>
+    <title>Nexus AI | Personal Knowledge Assistant</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
     <div class="app-container">
+        <!-- Drag & Drop Overlay -->
+        <div id="dragOverlay" class="drag-overlay">
+            <div class="drag-content">
+                <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                <h2>Drop Files to Attach</h2>
+            </div>
+        </div>
         <!-- Sidebar for History & Actions -->
         <aside class="sidebar">
-            <h1 class="brand-title">Nexus <span>Rag</span></h1>
-            <p class="subtitle">Autonomous AI Assistant</p>
+            <h1 class="brand-title">Nexus <span>AI</span></h1>
+            <p class="subtitle">Personal Knowledge Assistant</p>
             
             <div class="scroll-section">
                 <div class="history-section">
@@ -20,18 +29,12 @@
                     <div id="historyList" class="history-list">
                         <p class="empty-history">No past conversations.</p>
                     </div>
-                </div>
-
-                <div class="upload-section">
-                    <h3>Knowledge Ingestion</h3>
-                    <p>Upload PDFs to expand the RAG knowledge base.</p>
-                    
-                    <input type="file" id="pdfUpload" accept="application/pdf" hidden>
-                    <label for="pdfUpload" class="upload-btn" id="uploadBtn">Choose PDF</label>
-                    
-                    <div class="upload-status" id="uploadStatus"></div>
-                    <button class="ingest-btn" id="ingestBtn" disabled>Ingest to Vector DB</button>
-                </div>
+            </div>
+            
+            <div class="sidebar-actions" style="padding: 1rem; text-align: center; margin-top: auto;">
+                <button id="exportChatBtn" class="export-btn" style="width: 100%; border: 1px solid var(--accent); background: transparent; color: var(--accent); padding: 8px; border-radius: 8px; cursor: pointer; transition: 0.2s;">
+                    📥 Export Chat (.md)
+                </button>
             </div>
             
             <div class="system-status">
@@ -43,13 +46,14 @@
         <main class="chat-area">
             <header class="chat-header">
                 <div class="header-info">
-                    <h2>University Portal</h2>
-                    <span id="modelBadge" class="badge">GPT-4 Turbo</span>
+                    <h2>Nexus AI Studio</h2>
+                    <span id="modelBadge" class="badge" style="background: rgba(168, 85, 247, 0.2); color: #a855f7;">Ollama (LLaMA-3)</span>
                 </div>
                 <div class="model-selector">
                     <select id="modelToggle">
+                        <option value="ollama" selected>Ollama (Local LLaMA-3)</option>
                         <option value="openai">OpenAI (Cloud)</option>
-                        <option value="ollama">Ollama (Local LLaMA-3)</option>
+                        <option value="gemini">Google Gemini</option>
                     </select>
                 </div>
             </header>
@@ -58,16 +62,27 @@
                 <div class="message bot">
                     <div class="avatar">N</div>
                     <div class="msg-content">
-                        Hello! I am Nexus Assistant. I can answer questions grounded in the university documents you've uploaded. How can I help you today?
+                        Hello! I am Nexus AI. I can assist you with general queries, search the web, and provide intelligent insights. How can I help you today?
                     </div>
                 </div>
             </div>
             
+            <div id="filePreviewContainer" class="file-preview-container"></div>
             <div class="input-area">
-                <div class="input-wrapper">
-                    <input type="text" id="queryInput" placeholder="Ask a question about university policies..." autocomplete="off">
+                <div class="search-progress" style="display: none;" id="searchIndicator">
+                    Agentic Logic: Search in Progress... <span class="spinner"></span>
+                </div>
+                <div class="input-wrapper glowing-border">
+                    <button id="attachmentBtn" class="icon-btn attachment-btn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg>
+                    </button>
+                    <input type="file" id="fileInput" multiple style="display: none;" accept="image/*,.pdf,.txt,.docx">
+                    <input type="text" id="queryInput" placeholder="Enter your question or upload a file..." autocomplete="off">
+                    <button id="micBtn" class="icon-btn mic-btn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
+                    </button>
                     <button id="sendBtn" class="send-btn">
-                        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                        Submit <span>&rarr;</span>
                     </button>
                 </div>
             </div>

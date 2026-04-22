@@ -1,18 +1,16 @@
 document.addEventListener("DOMContentLoaded", () => {
     // Elements
-    const pdfUpload = document.getElementById("pdfUpload");
-    const uploadBtnLabel = document.getElementById("uploadBtn");
-    const uploadStatus = document.getElementById("uploadStatus");
-    const ingestBtn = document.getElementById("ingestBtn");
-    
+    const historyList = document.getElementById("historyList");
+    const modelBadge = document.getElementById("modelBadge");
     const chatWindow = document.getElementById("chatWindow");
     const queryInput = document.getElementById("queryInput");
     const sendBtn = document.getElementById("sendBtn");
     const modelToggle = document.getElementById("modelToggle");
-    const historyList = document.getElementById("historyList");
-    const modelBadge = document.getElementById("modelBadge");
-
-    let selectedFile = null;
+    const attachmentBtn = document.getElementById("attachmentBtn");
+    const fileInput = document.getElementById("fileInput");
+    const filePreviewContainer = document.getElementById("filePreviewContainer");
+    const micBtn = document.getElementById("micBtn");
+    const exportChatBtn = document.getElementById("exportChatBtn");
 
     // --- Sidebar History ---
     const loadHistory = async () => {
@@ -43,47 +41,136 @@ document.addEventListener("DOMContentLoaded", () => {
     // --- Model Selection ---
     modelToggle.addEventListener("change", (e) => {
         const val = e.target.value;
-        modelBadge.textContent = val === 'openai' ? 'GPT-4 Turbo' : 'Ollama (LLaMA-3)';
-        modelBadge.style.background = val === 'openai' ? 'rgba(99, 102, 241, 0.2)' : 'rgba(168, 85, 247, 0.2)';
-        modelBadge.style.color = val === 'openai' ? '#6366f1' : '#a855f7';
-    });
-
-    // --- Upload Logic ---
-    pdfUpload.addEventListener("change", (e) => {
-        if (e.target.files.length > 0) {
-            selectedFile = e.target.files[0];
-            uploadBtnLabel.textContent = selectedFile.name;
-            uploadBtnLabel.style.borderColor = "#6366f1";
-            ingestBtn.disabled = false;
-            uploadStatus.textContent = "Ready to ingest.";
+        if (val === 'openai') {
+            modelBadge.textContent = 'GPT-4 Turbo';
+            modelBadge.style.background = 'rgba(99, 102, 241, 0.2)';
+            modelBadge.style.color = '#6366f1';
+        } else if (val === 'gemini') {
+            modelBadge.textContent = 'Google Gemini';
+            modelBadge.style.background = 'rgba(52, 168, 83, 0.2)';
+            modelBadge.style.color = '#34a853';
+        } else {
+            modelBadge.textContent = 'Ollama (LLaMA-3)';
+            modelBadge.style.background = 'rgba(168, 85, 247, 0.2)';
+            modelBadge.style.color = '#a855f7';
         }
     });
 
-    ingestBtn.addEventListener("click", async () => {
-        if (!selectedFile) return;
-        const formData = new FormData();
-        formData.append("file", selectedFile);
-        ingestBtn.disabled = true;
-        ingestBtn.textContent = "Ingesting...";
-        uploadStatus.textContent = "Indexing...";
+    // --- Voice Input (Speech-to-Text) ---
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition) {
+        const recognition = new SpeechRecognition();
+        recognition.continuous = false;
+        recognition.lang = 'en-US';
 
-        try {
-            const response = await fetch("/api/nexus/ingest", { method: "POST", body: formData });
-            if (response.ok) {
-                uploadStatus.textContent = "Success! Index updated.";
-                uploadStatus.style.color = "#10b981";
-                setTimeout(() => {
-                    selectedFile = null;
-                    pdfUpload.value = "";
-                    uploadBtnLabel.textContent = "Choose PDF";
-                    uploadStatus.textContent = "";
-                    ingestBtn.textContent = "Ingest to Vector DB";
-                }, 3000);
+        recognition.onstart = () => {
+            micBtn.classList.add("mic-active");
+            queryInput.placeholder = "Listening...";
+        };
+
+        recognition.onresult = (event) => {
+            const transcript = event.results[0][0].transcript;
+            queryInput.value = transcript;
+            handleSend();
+        };
+
+        recognition.onend = () => {
+            micBtn.classList.remove("mic-active");
+            queryInput.placeholder = "Enter your question or upload a file...";
+        };
+
+        micBtn.addEventListener("click", () => {
+            recognition.start();
+        });
+    } else {
+        micBtn.style.display = "none";
+    }
+
+    // --- Voice Output (Text-to-Speech) ---
+    const speakText = (text) => {
+        // Strip HTML tags for clean speech
+        const tempDiv = document.createElement("div");
+        tempDiv.innerHTML = text;
+        const cleanText = tempDiv.textContent || tempDiv.innerText || "";
+        
+        const utterance = new SpeechSynthesisUtterance(cleanText);
+        utterance.rate = 1.0;
+        utterance.pitch = 1.0;
+        window.speechSynthesis.speak(utterance);
+    };
+
+    // --- Export Chat (Markdown) ---
+    exportChatBtn.addEventListener("click", () => {
+        let exportStr = "# Nexus AI Chat Export\n\n";
+        const messages = chatWindow.querySelectorAll('.message');
+        
+        messages.forEach(msg => {
+            const isUser = msg.classList.contains('user');
+            const contentDiv = msg.querySelector('.msg-content');
+            
+            // Reconstruct basic formatting for export
+            const textToExport = contentDiv.innerText;
+            
+            if (isUser) {
+                exportStr += `**User:** ${textToExport}\n\n`;
+            } else {
+                exportStr += `**Nexus AI:**\n${textToExport}\n\n---\n\n`;
             }
-        } catch (error) {
-            uploadStatus.textContent = "Upload failed!";
-            uploadStatus.style.color = "#ef4444";
-            ingestBtn.disabled = false;
+        });
+
+        const blob = new Blob([exportStr], { type: 'text/markdown' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Nexus_Chat_${new Date().toISOString().slice(0,10)}.md`;
+        a.click();
+        URL.revokeObjectURL(url);
+    });
+
+    // --- File Attachments ---
+    attachmentBtn.addEventListener("click", () => {
+        fileInput.click();
+    });
+
+    fileInput.addEventListener("change", () => {
+        filePreviewContainer.innerHTML = "";
+        Array.from(fileInput.files).forEach(file => {
+            const badge = document.createElement("span");
+            badge.className = "file-badge";
+            badge.textContent = file.name;
+            filePreviewContainer.appendChild(badge);
+            
+            if (modelToggle.value === 'ollama' && file.type.startsWith('image')) {
+                const warn = document.createElement("span");
+                warn.className = "file-badge file-warning";
+                warn.textContent = "Warning: Ollama ignores images";
+                filePreviewContainer.appendChild(warn);
+            }
+        });
+    });
+
+    const dragOverlay = document.getElementById("dragOverlay");
+
+    window.addEventListener("dragover", (e) => {
+        e.preventDefault();
+        dragOverlay.classList.add("active");
+    });
+
+    window.addEventListener("dragleave", (e) => {
+        e.preventDefault();
+        if (e.relatedTarget === null) {
+            dragOverlay.classList.remove("active");
+        }
+    });
+
+    window.addEventListener("drop", (e) => {
+        e.preventDefault();
+        dragOverlay.classList.remove("active");
+        
+        if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            fileInput.files = e.dataTransfer.files;
+            const event = new Event('change');
+            fileInput.dispatchEvent(event);
         }
     });
 
@@ -103,79 +190,111 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const handleSend = async () => {
         const text = queryInput.value.trim();
-        if (!text) return;
+        const files = fileInput.files;
+        
+        if (!text && files.length === 0) return;
 
-        addMessage(text, "user");
+        let displayHtml = text;
+        if (files.length > 0) {
+            displayHtml += `<br><small><i>[Attached ${files.length} file(s)]</i></small>`;
+        }
+
+        addMessage(displayHtml, "user");
         queryInput.value = "";
         
         // Typing indicator
-        const botMsgContent = addMessage('<div class="dot"></div><div class="dot"></div><div class="dot"></div>', "bot");
-        botMsgContent.innerHTML = ""; // Clear dots when stream starts
-
-        let fullText = "";
+        const msgWrapper = document.createElement("div");
+        msgWrapper.className = `message bot`;
+        msgWrapper.innerHTML = `
+            <div class="avatar">N</div>
+            <div class="msg-content"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+        `;
+        chatWindow.appendChild(msgWrapper);
+        chatWindow.scrollTop = chatWindow.scrollHeight;
+        
+        const botMsgContent = msgWrapper.querySelector('.msg-content');
+        
         const model = modelToggle.value;
+        const formData = new FormData();
+        formData.append("query", text);
+        formData.append("model", model);
+        for (let i = 0; i < files.length; i++) {
+            formData.append("files", files[i]);
+        }
+
+        fileInput.value = "";
+        filePreviewContainer.innerHTML = "";
 
         try {
-            const eventSource = new EventSource(`/api/nexus/chat?query=${encodeURIComponent(text)}&model=${model}`);
+            const response = await fetch('/api/nexus/chat', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!response.ok) throw new Error("Network error");
             
-            eventSource.onmessage = (event) => {
-                const data = JSON.parse(event.data);
+            botMsgContent.innerHTML = ""; // Clear dots
+            let fullText = "";
+
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder('utf-8');
+            let buffer = "";
+
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) {
+                    // Triggers when stream fully completes securely
+                    if (window.hljs) {
+                        botMsgContent.querySelectorAll('pre code').forEach((block) => {
+                            hljs.highlightElement(block);
+                        });
+                    }
+                    
+                    // Inject TTS Read Button
+                    const speakBtn = document.createElement("button");
+                    speakBtn.className = "speaker-btn";
+                    speakBtn.innerHTML = "🔊";
+                    speakBtn.onclick = () => speakText(fullText);
+                    botMsgContent.parentElement.append(speakBtn);
+                    
+                    break;
+                }
                 
-                if (data.type === "token") {
-                    // Smooth character typing effect
-                    const token = data.content;
-                    fullText += token;
-                    botMsgContent.innerHTML = fullText.replace(/\n/g, '<br>');
-                    chatWindow.scrollTop = chatWindow.scrollHeight;
-                } else if (data.type === "citations") {
-                    renderCitations(botMsgContent.parentElement, data.content);
-                    eventSource.close();
-                    loadHistory();
-                } else if (data.type === "error") {
-                    botMsgContent.innerHTML = "Error: " + data.content;
-                    eventSource.close();
-                }
-            };
+                buffer += decoder.decode(value, { stream: true });
+                const events = buffer.split('\n\n');
+                buffer = events.pop(); // keep the last incomplete chunk
 
-            eventSource.onerror = () => {
-                eventSource.close();
-                if (botMsgContent.innerHTML === "") {
-                    botMsgContent.innerHTML = "Connection lost. Please try again.";
-                }
-            };
-        } catch (error) {
-            botMsgContent.innerHTML = "Network error.";
-        }
-    };
+                for (const event of events) {
+                    if (event.startsWith('data:')) {
+                        const dataStr = event.slice(5).trim();
+                        if (dataStr) {
+                            try {
+                                const data = JSON.parse(dataStr);
+                                if (data.type === "token") {
+                                    fullText += data.content;
+                                    
+                                    // Parse Markdown cleanly
+                                    let formattedText = fullText
+                                        .replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>')
+                                        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                                        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                                        .replace(/^### (.*$)/gim, '<h3>$1</h3>')
+                                        .replace(/^\* (.*$)/gim, '<li>$1</li>')
+                                        .replace(/\n/g, '<br>');
 
-    const renderCitations = (messageDiv, citations) => {
-        if (!citations || citations.length === 0) return;
-        
-        const container = document.createElement("div");
-        container.className = "citations-container";
-        
-        // Use a Set to avoid duplicate filename/page combinations
-        const uniqueKeys = new Set();
-        
-        citations.forEach(source => {
-            const fileName = source.source_name || "Unknown Document";
-            const page = source.page_number || "?";
-            const key = `${fileName}_${page}`;
-            
-            if (!uniqueKeys.has(key)) {
-                uniqueKeys.add(key);
-                const badge = document.createElement("div");
-                badge.className = "citation-badge";
-                badge.innerHTML = `
-                    <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
-                    Source: ${fileName}, pg.${page}
-                `;
-                container.appendChild(badge);
+                                    botMsgContent.innerHTML = formattedText;
+                                    chatWindow.scrollTop = chatWindow.scrollHeight;
+                                } else if (data.type === "error") {
+                                    botMsgContent.innerHTML = "Error: " + data.content;
+                                }
+                            } catch (e) {}
+                        }
+                    }
+                }
             }
-        });
-        
-        messageDiv.querySelector('.msg-content').appendChild(container);
-        chatWindow.scrollTop = chatWindow.scrollHeight;
+        } catch (error) {
+            botMsgContent.innerHTML = "Network error or connection dropped.";
+        }
     };
 
     sendBtn.addEventListener("click", handleSend);

@@ -357,3 +357,88 @@ body {
     0%, 100% { transform: scale(1); opacity: 0.5; }
     50% { transform: scale(1.5); opacity: 1; }
 }
+
+/* File Attachments CSS */
+.file-preview-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 0 3rem;
+    margin-bottom: -1rem;
+    min-height: 20px;
+}
+.file-badge {
+    background: rgba(45, 212, 191, 0.15);
+    border: 1px solid var(--accent);
+    color: var(--text-primary);
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+}
+.file-warning {
+    background: rgba(239, 68, 68, 0.15);
+    border-color: #ef4444;
+    color: #fca5a5;
+}
+
+/* Drag & Drop Overlay */
+.drag-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(15, 23, 42, 0.85);
+    backdrop-filter: blur(8px);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+}
+.drag-overlay.active {
+    opacity: 1;
+}
+.drag-content {
+    text-align: center;
+    color: var(--accent);
+    padding: 3rem;
+    border: 3px dashed var(--accent);
+    border-radius: 20px;
+    background: rgba(45, 212, 191, 0.05);
+}
+.drag-content svg {
+    margin-bottom: 1rem;
+    color: var(--accent);
+}
+
+/* Feature Additions CSS */
+.export-btn:hover {
+    background: var(--accent) !important;
+    color: var(--bg-card) !important;
+}
+
+.mic-active {
+    color: #ef4444 !important;
+    animation: pulse 1.5s infinite;
+}
+
+.speaker-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 1rem;
+    margin-left: 8px;
+    opacity: 0.6;
+    transition: 0.2s;
+}
+.speaker-btn:hover {
+    opacity: 1;
+    color: var(--accent);
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}

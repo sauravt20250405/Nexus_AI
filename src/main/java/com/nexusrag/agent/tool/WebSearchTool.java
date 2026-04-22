@@ -12,20 +12,19 @@ import org.springframework.stereotype.Component;
 @Component
 public class WebSearchTool {
 
-    @Tool("Search the live internet for university-related information if not found in local PDF context")
-    public String searchUniversityWebsite(String query) {
+    @Tool("Search the live internet for general information and real-world updates if not found in local context.")
+    public String searchWorldWideWeb(String query) {
         System.out.println("DEBUG: Executing Live Web Search for query: " + query);
         
         // Mocking a live search response. 
-        // In reality, you'd use a search API client here.
         if (query.toLowerCase().contains("weather")) {
-            return "The current weather at the University campus is 22°C with clear skies (Source: Live Mock Search).";
+            return "The current weather is approximately 22°C with clear skies (Source: Live Mock Search).";
         }
         
-        if (query.toLowerCase().contains("event") || query.toLowerCase().contains("news")) {
-            return "Recent University News: The annual 'Nexus Tech Symposium' is scheduled for next Friday at the Grand Hall. Admission is free for all students. (Source: University News Feed).";
+        if (query.toLowerCase().contains("ai") || query.toLowerCase().contains("tech")) {
+            return "Latest Tech News: The 'Nexus AI' framework has just reached version 2.0, introducing advanced agentic workflows and multi-modal support. (Source: Global Tech News).";
         }
 
-        return "I searched the university web portal for '" + query + "' but found no specific live updates. Relying on baseline knowledge: Most university offices are open 9 AM - 5 PM. (Source: Web Search Mock).";
+        return "I searched the web for '" + query + "' but found no specific live updates. Relying on baseline knowledge: The world remains highly connected and dynamic. (Source: Web Search Mock).";
     }
 }
