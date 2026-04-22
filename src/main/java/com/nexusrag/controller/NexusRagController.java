@@ -45,9 +45,20 @@ public class NexusRagController {
     private final ObjectMapper objectMapper;
     private final dev.langchain4j.memory.ChatMemory chatMemory;
     
-    // Persistent Embedding Store
+    // Persistent Embedding Store (Lazy-loaded to save memory on cloud)
     private final InMemoryEmbeddingStore<TextSegment> embeddingStore = new InMemoryEmbeddingStore<>();
-    private final dev.langchain4j.model.embedding.EmbeddingModel embeddingModel = new AllMiniLmL6V2EmbeddingModel();
+    private volatile dev.langchain4j.model.embedding.EmbeddingModel embeddingModel;
+    
+    private dev.langchain4j.model.embedding.EmbeddingModel getEmbeddingModel() {
+        if (embeddingModel == null) {
+            synchronized (this) {
+                if (embeddingModel == null) {
+                    embeddingModel = new AllMiniLmL6V2EmbeddingModel();
+                }
+            }
+        }
+        return embeddingModel;
+    }
 
     public NexusRagController(
             @org.springframework.beans.factory.annotation.Qualifier("nexusOpenAiChatModel") StreamingChatLanguageModel openAiChatModel,
@@ -119,7 +130,7 @@ public class NexusRagController {
                         // Semantic Vector RAG Processing
                         List<TextSegment> segments = DocumentSplitters.recursive(1000, 200).split(doc);
                         for (TextSegment segment : segments) {
-                            embeddingStore.add(embeddingModel.embed(segment).content(), segment);
+                            embeddingStore.add(getEmbeddingModel().embed(segment).content(), segment);
                         }
                         finalQuery.append("\n\n(System Note: Document '").append(file.getOriginalFilename()).append("' successfully vectorized into memory space.)\n");
                     } catch (Exception ignored) {}
@@ -146,7 +157,7 @@ public class NexusRagController {
                 // Auto-inject Semantic RAG Context Retriever
                 EmbeddingStoreContentRetriever retriever = EmbeddingStoreContentRetriever.builder()
                         .embeddingStore(embeddingStore)
-                        .embeddingModel(embeddingModel)
+                        .embeddingModel(getEmbeddingModel())
                         .maxResults(5)
                         .minScore(0.6)
                         .build();
