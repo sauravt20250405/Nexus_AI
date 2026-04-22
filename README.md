@@ -125,8 +125,8 @@ The AI has access to **8 autonomous tools** via LangChain4j's `@Tool` framework:
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/sauravt20250405/Nexus_Rag.git
-cd Nexus_Rag
+git clone https://github.com/sauravt20250405/Nexus_AI.git
+cd Nexus_AI
 ```
 
 ### 2. Configure API Keys
