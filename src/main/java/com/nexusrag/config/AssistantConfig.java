@@ -7,6 +7,7 @@ import dev.langchain4j.model.googleai.GoogleAiGeminiStreamingChatModel;
 import dev.langchain4j.model.openai.OpenAiImageModel;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.beans.factory.annotation.Value;
 
 @Configuration
@@ -43,6 +44,7 @@ public class AssistantConfig {
     @Value("${langchain4j.groq.model-name:llama-3.3-70b-versatile}")
     private String groqModelName;
 
+    @Lazy
     @Bean("nexusOpenAiChatModel")
     public StreamingChatLanguageModel openAiChatModel() {
         return OpenAiStreamingChatModel.builder()
@@ -52,6 +54,7 @@ public class AssistantConfig {
                 .build();
     }
 
+    @Lazy
     @Bean("nexusOllamaChatModel")
     public StreamingChatLanguageModel ollamaChatModel() {
         return OllamaStreamingChatModel.builder()
@@ -61,6 +64,7 @@ public class AssistantConfig {
                 .build();
     }
 
+    @Lazy
     @Bean("nexusGeminiChatModel")
     public StreamingChatLanguageModel geminiChatModel() {
         return GoogleAiGeminiStreamingChatModel.builder()
@@ -70,6 +74,7 @@ public class AssistantConfig {
                 .build();
     }
 
+    @Lazy
     @Bean("nexusOpenAiImageModel")
     public dev.langchain4j.model.image.ImageModel openAiImageModel() {
         return OpenAiImageModel.builder()
@@ -78,6 +83,7 @@ public class AssistantConfig {
                 .build();
     }
 
+    @Lazy
     @Bean("nexusGroqChatModel")
     public StreamingChatLanguageModel groqChatModel() {
         return OpenAiStreamingChatModel.builder()
