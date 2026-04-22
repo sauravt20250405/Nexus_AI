@@ -11,6 +11,8 @@
 
 **Nexus AI** is a production-grade, multi-modal AI operating system built on **Spring Boot** and **LangChain4j**. It routes conversations across **5 AI models**, supports **live webcam vision**, **voice I/O**, **autonomous web scraping**, **DALL-E image generation**, **semantic vector RAG**, and an **autonomous terminal sandbox** — all from a single glassmorphism interface.
 
+### 🌐 [Live Demo → nexus-ai-ywm3.onrender.com](https://nexus-ai-ywm3.onrender.com)
+
 [Features](#-features) · [Architecture](#-architecture) · [Quick Start](#-quick-start) · [API Reference](#-api-reference) · [Configuration](#%EF%B8%8F-configuration) · [Tech Stack](#-tech-stack)
 
 </div>
